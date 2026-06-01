@@ -1,48 +1,47 @@
 from enum import Enum
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel
 import datetime
+import typing as t
 from app.domains.tasks.db.tasks.task_dtos import Task
 
 
-class Status(Enum):
-    TO_DO = 'to_do'
-    IN_PROGRESS = 'in_progress'
-    DONE = 'done'
-
-    def __str__(self):
-        return self.value
+class Status(str, Enum):
+    to_do = "to_do"
+    in_progress = "in_progress"
+    done = "done"
 
 
-class Priority(Enum):
-    LOW = 'low'
-    MEDIUM = 'medium'
-    HIGH = 'high'
-
-    def __str__(self):
-        return self.value
+class Priority(str, Enum):
+    low = "low"
+    medium = "medium"
+    high = "high"
 
 
 class ProjectBase(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
-
     description: str | None = None
     due_date: datetime.date | None = None
     assignee: str | None = None
     status: Status | None = None
     priority: Priority | None = None
+    title: str
+
+    class Config:
+        orm_mode = True
 
 
 class ProjectCreate(ProjectBase):
-    title: str
+    pass
 
 
 class ProjectUpdate(ProjectBase):
-    title: str | None = None
+    pass
 
 
 class Project(ProjectBase):
     id: int
-    title: str
     tasks: list[Task] = []
     created_at: datetime.datetime
     updated_at: datetime.datetime
+
+    class Config:
+        orm_mode = True

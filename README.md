@@ -1,228 +1,108 @@
-# Primetrade Task API
+# Primetrade.ai Backend & Frontend Assignment
 
-A full-stack REST API with JWT authentication, role-based access control, and task management — built with FastAPI (Python) backend and React (Vite) frontend.
+This repository contains a full-stack web application built to fulfill the assignment requirements. It provides a secure backend API built with FastAPI and a modern frontend UI built with React.
 
----
+## Features
 
-## Tech Stack
+### 🚀 Backend (FastAPI)
+- **Authentication & Security:**
+  - JWT-based authentication using `jose.jwt`.
+  - Password hashing via `bcrypt`.
+  - SQLite for local development (can be switched to PostgreSQL via `.env`).
+- **Role-Based Access Control:**
+  - Distinct permissions for users and superusers (admins).
+  - Admin-only routes for user management.
+- **RESTful API:**
+  - API versioning (`/api/v1`).
+  - Full CRUD endpoints for Tasks and Projects.
+  - Interactive Swagger documentation at `/api/docs`.
+- **Database & Architecture:**
+  - SQLAlchemy ORM models.
+  - Alembic for database migrations.
+  - Pydantic models for request validation and response serialization.
 
-**Backend:** FastAPI, SQLAlchemy, SQLite, python-jose (JWT), bcrypt, Pydantic v2, Uvicorn
-
-**Frontend:** React 19, Vite, Context API (no external state library)
-
----
+### 🎨 Frontend (React + TypeScript)
+- **Modern UI Framework:** Built using Material-UI (MUI) components.
+- **Authentication Flow:**
+  - Secure Login and Registration pages with modern gradient designs.
+  - Protected Dashboard routing (redirects unauthenticated users).
+  - JWT token stored in `localStorage`.
+- **Project & Task Management:**
+  - Create, view, edit, and delete projects.
+  - Drill down into projects to manage associated tasks.
+  - Form validation with `react-hook-form` and `yup`.
+- **User Feedback:**
+  - Toast notifications for errors.
+  - Confirmation modals for destructive actions (e.g., deleting a project).
+  - Loading states during API calls.
 
 ## Project Structure
 
-```
-primetrade-task-api/
+```text
+Primetradassignment/
 ├── backend/
-│   ├── main.py                   # FastAPI app entry, CORS, global error handler, API versioning
+│   ├── app/
+│   │   ├── core/           # Configs, Security, Celery App
+│   │   ├── db/             # SQLAlchemy Session, Engine
+│   │   ├── domains/        # Business Logic (auth, tasks, users)
+│   │   ├── alembic/        # Migrations
+│   │   └── main.py         # FastAPI Entry Point
 │   ├── requirements.txt
-│   └── app/
-│       ├── core/
-│       │   ├── database.py       # SQLAlchemy models (User, Task), DB init
-│       │   └── security.py       # bcrypt password hashing, JWT creation and decoding
-│       ├── routers/
-│       │   ├── auth.py           # /register, /login, /me
-│       │   ├── tasks.py          # Full CRUD for tasks
-│       │   └── admin.py          # Admin-only user management
-│       ├── schemas.py            # Pydantic v2 request/response schemas with validators
-│       └── dependencies.py       # JWT auth dependency, admin role guard
-├── frontend-react/
+│   └── start.sh            # Docker Entrypoint Script
+├── frontend/
 │   ├── src/
-│   │   ├── App.jsx               # Root component with token-based routing
-│   │   ├── AuthContext.jsx       # JWT + user state via React Context
-│   │   ├── api.js                # Centralized fetch wrapper with auth headers
-│   │   └── components/
-│   │       ├── LoginPage.jsx     # Login and registration forms
-│   │       ├── Dashboard.jsx     # Task list, task creation, tab navigation
-│   │       ├── TaskForm.jsx      # Create task form
-│   │       ├── TaskItem.jsx      # Inline task edit and delete
-│   │       ├── AdminPanel.jsx    # Admin user management view
-│   │       └── Msg.jsx           # Reusable success/error message component
-│   └── dist/                     # Pre-built production build (ready to serve)
-└── postman_collection.json       # Postman collection for all API endpoints
+│   │   ├── apis/           # Fetch wrappers (Projects, Tasks)
+│   │   ├── components/     # UI Components (Forms, Tables, Layouts)
+│   │   ├── context/        # AuthContext (JWT management)
+│   │   ├── pages/          # Login, Register, Dashboards
+│   │   ├── types/          # TypeScript Interfaces
+│   │   ├── App.tsx         # Root Component
+│   │   └── index.tsx       # React Router Setup
+│   ├── package.json
+│   └── tsconfig.json
+└── docker-compose.yml      # Orchestrates Frontend, Backend, Postgres, Redis, Nginx
 ```
 
----
+## Quick Start (Docker)
 
-## Local Setup
+The easiest way to run the entire stack is via Docker Compose.
 
-### Prerequisites
+1. **Build and start the containers:**
+   ```bash
+   docker compose up --build -d
+   ```
+2. **Access the application:**
+   - **Frontend UI:** `http://localhost:3000`
+   - **Backend API Docs:** `http://localhost:8888/api/docs`
+   - **Flower (Celery Monitor):** `http://localhost:5555`
 
-- Python 3.10+
-- Node.js 18+
+## Local Development (Without Docker)
 
 ### Backend
+1. Create a virtual environment and activate it (Python 3.10+ recommended).
+2. Install dependencies:
+   ```bash
+   cd backend
+   pip install -r requirements.txt
+   ```
+3. Start the FastAPI server (it will automatically create the SQLite tables on startup):
+   ```bash
+   uvicorn app.main:app --reload --port 8000
+   ```
 
-```bash
-cd backend
-pip install -r requirements.txt
-uvicorn main:app --reload --port 8000
-```
+### Frontend
+1. Install Node.js dependencies:
+   ```bash
+   cd frontend
+   npm install
+   ```
+2. Start the React development server:
+   ```bash
+   npm start
+   ```
+3. Open `http://localhost:3000` in your browser. (Ensure your `.env` points to the correct API base URL, typically `http://localhost:8000/api`).
 
-The database (SQLite) is created automatically on first run. No migrations needed.
-
-Swagger docs available at: http://localhost:8000/docs
-
-ReDoc available at: http://localhost:8000/redoc
-
-### Frontend (development)
-
-```bash
-cd frontend-react
-npm install
-npm run dev
-```
-
-Runs at: http://localhost:5173
-
-### Frontend (production build — pre-built, ready to serve)
-
-```bash
-cd frontend-react
-npx serve dist
-```
-
-The `dist/` folder is already included. No build step required to run.
-
----
-
-## Environment Variables
-
-The backend currently uses hardcoded defaults suitable for local development. For production, set these as environment variables:
-
-| Variable | Default | Description |
-|---|---|---|
-| `DATABASE_URL` | `sqlite:///./app.db` | Database connection string |
-| `SECRET_KEY` | `supersecretkey-...` | JWT signing secret (change this) |
-| `ACCESS_TOKEN_EXPIRE_MINUTES` | `60` | Token expiry duration |
-
-To switch to PostgreSQL, change `DATABASE_URL` to:
-```
-postgresql://user:password@localhost/dbname
-```
-
-No other code changes required.
-
----
-
-## API Reference
-
-Base URL: `/api/v1`
-
-Interactive documentation: http://localhost:8000/docs
-
-### Authentication
-
-| Method | Endpoint | Auth Required | Description |
-|---|---|---|---|
-| POST | `/auth/register` | No | Register a new user |
-| POST | `/auth/login` | No | Login and receive JWT token |
-| GET | `/auth/me` | JWT | Get current authenticated user |
-
-### Tasks
-
-| Method | Endpoint | Auth Required | Description |
-|---|---|---|---|
-| POST | `/tasks/` | JWT | Create a new task |
-| GET | `/tasks/` | JWT | List tasks (own tasks for users, all tasks for admins) |
-| GET | `/tasks/{id}` | JWT | Get a single task |
-| PUT | `/tasks/{id}` | JWT | Update a task |
-| DELETE | `/tasks/{id}` | JWT | Delete a task |
-
-### Admin
-
-| Method | Endpoint | Auth Required | Description |
-|---|---|---|---|
-| GET | `/admin/users` | Admin JWT | List all registered users |
-| DELETE | `/admin/users/{id}` | Admin JWT | Delete a user and their tasks |
-
----
-
-## Roles and Access
-
-**user** — can create, view, update, and delete their own tasks only.
-
-**admin** — can view all tasks across all users, and manage (list/delete) all users via the admin panel.
-
-Role is set at registration time. The frontend exposes a role selector on the register form. Admin-only tabs and routes are hidden from regular users on the frontend.
-
----
-
-## Database Schema
-
-**users**
-
-| Column | Type | Notes |
-|---|---|---|
-| id | Integer | Primary key |
-| username | String(50) | Unique, indexed |
-| email | String(100) | Unique, indexed |
-| hashed_password | String(255) | bcrypt hash |
-| role | String(20) | "user" or "admin" |
-| is_active | Boolean | Default true |
-| created_at | DateTime | Auto-set |
-
-**tasks**
-
-| Column | Type | Notes |
-|---|---|---|
-| id | Integer | Primary key |
-| title | String(200) | Required |
-| description | Text | Optional |
-| status | String(20) | "pending", "in_progress", "done" |
-| owner_id | Integer | Foreign key to users.id |
-| created_at | DateTime | Auto-set |
-| updated_at | DateTime | Auto-updated on edit |
-
-Cascade delete is configured: deleting a user removes all their tasks.
-
----
-
-## Security
-
-- Passwords are hashed using bcrypt before storage. Plain-text passwords are never persisted.
-- JWT tokens are signed with HS256 and expire after 60 minutes.
-- All protected routes validate the token on every request via a FastAPI dependency.
-- Admin-only routes use a separate `require_admin` dependency that checks role after token validation.
-- Input validation is handled at the schema layer via Pydantic v2 validators before any database operation.
-- A global exception handler prevents internal error details from leaking in 500 responses.
-
----
-
-## Scalability Notes
-
-**Database:** The project uses SQLite for zero-config local development. Switching to PostgreSQL requires only a `DATABASE_URL` environment variable change — no code modifications. SQLAlchemy abstracts the database layer entirely.
-
-**Caching:** Redis can be added for JWT token blacklisting (logout invalidation) and caching frequent read endpoints like task lists, reducing database load significantly at scale.
-
-**Microservices:** The auth, tasks, and admin routers are independently structured and can be extracted into separate services behind an API gateway (e.g., Kong or Nginx) with minimal refactoring.
-
-**Load Balancing:** JWT authentication is stateless, meaning multiple Uvicorn worker instances can run behind an Nginx load balancer without session affinity. Horizontal scaling requires no architectural changes.
-
-**Docker:** The backend can be containerized with a single Dockerfile. A Docker Compose setup can bring up the API, PostgreSQL, and Redis together for a fully reproducible environment.
-
----
-
-## Postman Collection
-
-A Postman collection covering all endpoints is included at the root of the repository as `postman_collection.json`.
-
-To use it:
-1. Open Postman
-2. Click Import and select `postman_collection.json`
-3. Set the `base_url` variable to `http://localhost:8000`
-4. Run the Register and Login requests first, then copy the returned token into the `token` collection variable
-
----
-
-## Quick Test Flow
-
-1. Register a user with role `admin` via `/api/v1/auth/register`
-2. Login via `/api/v1/auth/login` — copy the `access_token` from the response
-3. Use the token as a Bearer token in the Authorization header for all subsequent requests
-4. Create tasks via `POST /api/v1/tasks/`
-5. List, update, delete tasks
-6. Access `/api/v1/admin/users` to verify admin-only access control
+## Technologies Used
+- **Backend:** Python, FastAPI, SQLAlchemy, Alembic, Pydantic, Passlib, python-jose.
+- **Frontend:** React, TypeScript, React Router DOM, Material UI (MUI), React Hook Form.
+- **Infrastructure:** Docker, Docker Compose, Nginx, PostgreSQL, Redis, Celery.

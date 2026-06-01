@@ -9,9 +9,13 @@ import {
   LinkProps as RouterLinkProps,
 } from "react-router-dom";
 import { LinkProps } from "@mui/material/Link";
-import { createTheme } from "@mui/material";
+import { createTheme, ThemeProvider } from "@mui/material";
 import ManageProjects from "./pages/ManageProjects";
 import App from "./App";
+import Login from "./pages/Login";
+import Register from "./pages/Register";
+import { AuthProvider } from "./context/AuthContext";
+import ProtectedRoute from "./components/shared/ProtectedRoute";
 
 const LinkBehavior = React.forwardRef<
   HTMLAnchorElement,
@@ -22,7 +26,7 @@ const LinkBehavior = React.forwardRef<
   return <RouterLink ref={ref} to={href} {...other} />;
 });
 
-createTheme({
+const theme = createTheme({
   components: {
     MuiLink: {
       defaultProps: {
@@ -39,8 +43,20 @@ createTheme({
 
 const router = createBrowserRouter([
   {
+    path: "/login",
+    element: <Login />,
+  },
+  {
+    path: "/register",
+    element: <Register />,
+  },
+  {
     path: "/",
-    element: <App />,
+    element: (
+      <ProtectedRoute>
+        <App />
+      </ProtectedRoute>
+    ),
     errorElement: <ErrorPage />,
     children: [
       {
@@ -69,7 +85,11 @@ const root = ReactDOM.createRoot(
 
 root.render(
   <React.StrictMode>
-    <RouterProvider router={router} />
+    <AuthProvider>
+      <ThemeProvider theme={theme}>
+        <RouterProvider router={router} />
+      </ThemeProvider>
+    </AuthProvider>
   </React.StrictMode>
 );
 

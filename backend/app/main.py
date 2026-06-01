@@ -1,5 +1,5 @@
 from fastapi.middleware.cors import CORSMiddleware
-from app.db.session import SessionLocal
+from app.db.session import SessionLocal, engine, Base
 from app.core import config
 from fastapi import FastAPI, Depends
 from starlette.requests import Request
@@ -9,10 +9,11 @@ app = FastAPI(
     title=config.PROJECT_NAME,
     version="1.0.0",
     docs_url="/api/docs",
-    openapi_url="/api/openapi.json"
+    openapi_url="/api/openapi.json",
+    description="Scalable REST API with Authentication & Role-Based Access Control",
 )
 
-origins = config.CORS_ORIGINS.split(',')
+origins = config.CORS_ORIGINS.split(',') if config.CORS_ORIGINS else ["*"]
 
 app.add_middleware(
     CORSMiddleware,
@@ -21,6 +22,16 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+@app.on_event("startup")
+async def startup_event():
+    """Create all database tables on startup (useful for SQLite dev)."""
+    # Import all models so they are registered with Base.metadata
+    from app.domains.users.db import user_entity  # noqa
+    from app.domains.tasks.db.tasks import task_entity  # noqa
+    from app.domains.tasks.db.projects import project_entity  # noqa
+    Base.metadata.create_all(bind=engine)
 
 
 @app.middleware("http")
@@ -51,19 +62,21 @@ try:
 
     # Include routers
     app.include_router(auth_router, prefix="/api", tags=["auth"])
-    
+
     app.include_router(
         tasks_router,
         prefix="/api/v1",
         tags=["tasks"],
+        dependencies=[Depends(get_current_active_user)],
     )
 
     app.include_router(
         projects_router,
         prefix="/api/v1",
         tags=["projects"],
+        dependencies=[Depends(get_current_active_user)],
     )
-    
+
     app.include_router(
         users_router,
         prefix="/api/v1",
@@ -75,5 +88,4 @@ except ImportError as e:
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run("main:app", host="0.0.0.0", port=8000)
-
+    uvicorn.run("app.main:app", host="0.0.0.0", port=8000, reload=True)

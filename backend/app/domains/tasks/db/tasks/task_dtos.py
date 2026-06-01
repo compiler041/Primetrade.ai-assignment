@@ -3,22 +3,16 @@ import datetime
 from enum import Enum
 
 
-class Status(Enum):
-    TO_DO = 'to_do'
-    IN_PROGRESS = 'in_progress'
-    DONE = 'done'
-
-    def __str__(self):
-        return self.value
+class Status(str, Enum):
+    to_do = "to_do"
+    in_progress = "in_progress"
+    done = "done"
 
 
-class Priority(Enum):
-    LOW = 'low'
-    MEDIUM = 'medium'
-    HIGH = 'high'
-
-    def __str__(self):
-        return self.value
+class Priority(str, Enum):
+    low = "low"
+    medium = "medium"
+    high = "high"
 
 
 class TaskBase(BaseModel):
@@ -29,19 +23,19 @@ class TaskBase(BaseModel):
     assignee: str | None = None
     status: Status | None = None
     priority: Priority | None = None
-    project_id: int | None = None
-
-
-class TaskCreate(TaskBase):
     title: str
 
 
+class TaskCreate(TaskBase):
+    project_id: int
+
+
 class TaskUpdate(TaskBase):
-    title: str | None = None
+    pass
 
 
 class Task(TaskBase):
     id: int
-    title: str
     created_at: datetime.datetime
     updated_at: datetime.datetime
+    project_id: int | None = None

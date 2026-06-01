@@ -1,6 +1,5 @@
-import jwt
+from jose import jwt, JWTError
 from fastapi import Depends, HTTPException, status
-from jwt import PyJWTError
 
 from app.db import session
 from app.domains.users.db import user_entity, user_dtos
@@ -26,7 +25,7 @@ async def get_current_user(
         permissions: str = payload.get("permissions")
         token_data = user_dtos.TokenData(
             email=email, permissions=permissions)
-    except PyJWTError:
+    except JWTError:
         raise credentials_exception
     user = get_user_by_email(db, token_data.email)
     if user is None:
