@@ -106,3 +106,7 @@ The easiest way to run the entire stack is via Docker Compose.
 - **Backend:** Python, FastAPI, SQLAlchemy, Alembic, Pydantic, Passlib, python-jose.
 - **Frontend:** React, TypeScript, React Router DOM, Material UI (MUI), React Hook Form.
 - **Infrastructure:** Docker, Docker Compose, Nginx, PostgreSQL, Redis, Celery.
+
+
+##API_Documentation
+https://docs.google.com/document/d/1yxmMTQ3LJohcg-KMZMOE_ErE4Hrm8bV6rm1PR1uGwNw/edit?usp=sharing
